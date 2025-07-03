@@ -3,7 +3,15 @@ import Budget from '../models/Budget';
 
 export class BudgetController {
   static getAll = async (req: Request, res: Response) => {
-    res.send('Desde get all budgets controller');
+    try {
+      const budgets = await Budget.findAll({
+        order: [['createdAt', 'DESC']],
+        //TODO: filter by user authenticated
+      });
+      res.json(budgets);
+    } catch (error) {
+      res.status(500).json({ error: 'Hubo un error inesperado' });
+    }
   };
   static create = async (req: Request, res: Response) => {
     try {
@@ -15,13 +23,45 @@ export class BudgetController {
       res.status(500).json({ error: 'Hubo un error inesperado' });
     }
   };
-  static getBudget = async (req: Request, res: Response) => {
-    res.send('Desde getBudget controller');
+  static getBudget = async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { id } = req.params;
+      const budget = await Budget.findByPk(id);
+      if (!budget) {
+        const error = new Error('Presupuesto no encontrado');
+        return res.status(404).json({ error: error.message });
+      }
+      res.json(budget);
+    } catch (error) {
+      res.status(500).json({ error: 'Hubo un error inesperado' });
+    }
   };
-  static updateBudget = async (req: Request, res: Response) => {
-    res.send('Desde updateBudget controller');
+  static updateBudget = async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { id } = req.params;
+      const budget = await Budget.findByPk(id);
+      if (!budget) {
+        const error = new Error('Presupuesto no encontrado');
+        return res.status(404).json({ error: error.message });
+      }
+      await budget.update(req.body);
+      res.json(budget);
+    } catch (error) {
+      res.status(500).json({ error: 'Hubo un error inesperado' });
+    }
   };
-  static deleteBudget = async (req: Request, res: Response) => {
-    res.send('Desde deleteBudget controller');
+  static deleteBudget = async (req: Request, res: Response): Promise<any> => {
+    try {
+      const { id } = req.params;
+      const budget = await Budget.findByPk(id);
+      if (!budget) {
+        const error = new Error('Presupuesto no encontrado');
+        return res.status(404).json({ error: error.message });
+      }
+      await budget.destroy();
+      res.json('Presupuesto eliminado');
+    } catch (error) {
+      res.status(500).json({ error: 'Hubo un error inesperado' });
+    }
   };
 }
